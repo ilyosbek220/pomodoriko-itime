@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkFocus - Pomodoro Timer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(255, 100, 100, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 50, 50, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(200, 50, 50, 0.05) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .background-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .code-icon {
+            position: absolute;
+            color: #ff4444;
+            font-size: 24px;
+            opacity: 0.2;
+            animation: codeFloat 8s ease-in-out infinite;
+        }
+
+        .code-icon:nth-child(1) { top: 15%; left: 8%; animation-delay: 0s; }
+        .code-icon:nth-child(2) { top: 25%; right: 12%; animation-delay: 1.5s; }
+        .code-icon:nth-child(3) { top: 45%; left: 10%; animation-delay: 3s; }
+        .code-icon:nth-child(4) { top: 65%; right: 15%; animation-delay: 4.5s; }
+        .code-icon:nth-child(5) { top: 80%; left: 15%; animation-delay: 6s; }
+        .code-icon:nth-child(6) { top: 35%; right: 8%; animation-delay: 7.5s; }
+        .code-icon:nth-child(7) { top: 55%; left: 5%; animation-delay: 2s; }
+        .code-icon:nth-child(8) { top: 75%; right: 25%; animation-delay: 5s; }
+
+        @keyframes codeFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+            25% { transform: translateY(-15px) rotate(5deg); opacity: 0.3; }
+            50% { transform: translateY(-25px) rotate(-3deg); opacity: 0.25; }
+            75% { transform: translateY(-10px) rotate(2deg); opacity: 0.35; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1.5px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .tagline {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+        }
+
+        .motivational-text {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: right;
+            max-width: 300px;
+            line-height: 1.4;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: -0.3px;
+        }
+
+        .main-content {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .focus-question {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .timer-container {
+            position: relative;
+            margin: 40px 0;
+        }
+
+        .timer-display {
+            font-size: 140px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -8px;
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn.primary {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            pointer-events: none;
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 3;
+        }
+
+        .progress-ring .bg-circle {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-ring .progress-circle {
+            stroke: rgba(255, 100, 100, 0.8);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            background: rgba(255, 100, 100, 0.95);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translate(-50%, -100px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translate(-50%, 0);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .timer-display.finished {
+            animation: pulse 1.5s infinite;
+            color: #ff6666;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 30px;
+            right: 50%;
+            transform: translateX(50px);
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .timer-display {
+                font-size: 80px;
+            }
+            
+            .focus-question {
+                font-size: 24px;
+            }
+            
+            .mode-tabs {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .tab {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .motivational-text {
+                display: none;
+            }
+            
+            .stats {
+                gap: 20px;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-elements">
+        <div class="code-icon">&lt;/&gt;</div>
+        <div class="code-icon">{ }</div>
+        <div class="code-icon">🍂</div>
+        <div class="code-icon">🍂</div>
+        <div class="code-icon">🍂</div>
+        <div class="code-icon">🍂</div>
+        <div class="code-icon">🍂</div>
+        <div class="code-icon">🍂</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">WorkFocus</div>
+            <div class="tagline">by ilyosbek</div>
+        </div>
+
+        <div class="motivational-text">
+            Start today to be proud tomorrow.
+        </div>
+
+        <div class="main-content">
+            <h1 class="focus-question">What do you want to focus on? ✏️</h1>
+
+            <div class="mode-tabs">
+                <button class="tab active" data-mode="focus" data-time="25">Focus</button>
+                <button class="tab" data-mode="short" data-time="5">Short Break</button>
+                <button class="tab" data-mode="long" data-time="15">Long Break</button>
+            </div>
+
+            <div class="timer-container">
+                <svg class="progress-ring">
+                    <circle cx="140" cy="140" r="130" class="bg-circle"></circle>
+                    <circle cx="140" cy="140" r="130" class="progress-circle" id="progressCircle"></circle>
+                </svg>
+                <div class="timer-display" id="timerDisplay">25:00</div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="pauseBtn" title="Pause">⏸️</button>
+                <button class="control-btn primary" id="startBtn" title="Start">▶️</button>
+                <button class="control-btn" id="resetBtn" title="Reset">🔄</button>
+                <button class="control-btn fullscreen-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="pomodoroCount">0</span>
+                <div class="stat-label">POMODOROS</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="totalTime">0h</span>
+                <div class="stat-label">TOTAL TIME</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class WorkFocusTimer {
+            constructor() {
+                this.modes = {
+                    focus: { time: 25 * 60, label: 'Focus Time' },
+                    short: { time: 5 * 60, label: 'Short Break' },
+                    long: { time: 15 * 60, label: 'Long Break' }
+                };
+                
+                this.currentMode = 'focus';
+                this.timeLeft = this.modes[this.currentMode].time;
+                this.totalTime = this.timeLeft;
+                this.isRunning = false;
+                this.timer = null;
+                this.pomodoroCount = 0;
+                this.totalFocusTime = 0;
+                
+                this.initElements();
+                this.initEventListeners();
+                this.updateDisplay();
+                this.updateProgress();
+            }
+
+            initElements() {
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.fullscreenBtn = document.getElementById('fullscreenBtn');
+                this.progressCircle = document.getElementById('progressCircle');
+                this.pomodoroCountEl = document.getElementById('pomodoroCount');
+                this.totalTimeEl = document.getElementById('totalTime');
+                this.notification = document.getElementById('notification');
+                this.tabs = document.querySelectorAll('.tab');
+                
+                const circumference = 2 * Math.PI * 130;
+                this.progressCircle.style.strokeDasharray = circumference;
+                this.progressCircle.style.strokeDashoffset = circumference;
+            }
+
+            initEventListeners() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const mode = tab.dataset.mode;
+                        const time = parseInt(tab.dataset.time);
+                        this.switchMode(mode, time);
+                    });
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        if (this.isRunning) {
+                            this.pause();
+                        } else {
+                            this.start();
+                        }
+                    }
+                    if (e.code === 'KeyR' && e.ctrlKey) {
+                        e.preventDefault();
+                        this.reset();
+                    }
+                });
+            }
+
+            start() {
+                if (!this.isRunning) {
+                    this.isRunning = true;
+                    this.startBtn.innerHTML = '⏸️';
+                    this.startBtn.title = 'Pause';
+                    
+                    this.timer = setInterval(() => {
+                        this.timeLeft--;
+                        this.updateDisplay();
+                        this.updateProgress();
+                        
+                        if (this.timeLeft <= 0) {
+                            this.complete();
+                        }
+                    }, 1000);
+                }
+            }
+
+            pause() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    clearInterval(this.timer);
+                    this.startBtn.innerHTML = '▶️';
+                    this.startBtn.title = 'Start';
+                }
+            }
+
+            reset() {
+                this.pause();
+                this.timeLeft = this.modes[this.currentMode].time;
+                this.totalTime = this.timeLeft;
+                this.updateDisplay();
+                this.updateProgress();
+                this.timerDisplay.classList.remove('finished');
+            }
+
+            complete() {
+                this.pause();
+                this.timerDisplay.classList.add('finished');
+                
+                if (this.currentMode === 'focus') {
+                    this.pomodoroCount++;
+                    this.totalFocusTime += 25;
+                    this.updateStats();
+                }
+                
+                this.showNotification(`${this.modes[this.currentMode].label} completed! 🎉`);
+                this.playNotificationSound();
+                
+                // Auto switch mode
+                setTimeout(() => {
+                    if (this.currentMode === 'focus') {
+                        const nextMode = this.pomodoroCount % 4 === 0 ? 'long' : 'short';
+                        const nextTime = nextMode === 'long' ? 15 : 5;
+                        this.switchMode(nextMode, nextTime);
+                    } else {
+                        this.switchMode('focus', 25);
+                    }
+                }, 3000);
+            }
+
+            switchMode(mode, time) {
+                this.currentMode = mode;
+                this.modes[mode].time = time * 60;
+                this.reset();
+                
+                // Update active tab
+                this.tabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.mode === mode);
+                });
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                this.timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update page title
+                document.title = `${this.timerDisplay.textContent} - WorkFocus`;
+            }
+
+            updateProgress() {
+                const circumference = 2 * Math.PI * 130;
+                const progress = (this.totalTime - this.timeLeft) / this.totalTime;
+                const offset = circumference - (progress * circumference);
+                this.progressCircle.style.strokeDashoffset = offset;
+            }
+
+            updateStats() {
+                this.pomodoroCountEl.textContent = this.pomodoroCount;
+                const hours = Math.floor(this.totalFocusTime / 60);
+                const minutes = this.totalFocusTime % 60;
+                this.totalTimeEl.textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            }
+
+            showNotification(message) {
+                this.notification.textContent = message;
+                this.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 4000);
+            }
+
+            playNotificationSound() {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.8);
+                } catch (e) {
+                    console.log('Audio not supported');
+                }
+            }
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Initialize timer
+        document.addEventListener('DOMContentLoaded', () => {
+            new WorkFocusTimer();
+        });
+    </script>
+</body>
+</html>
